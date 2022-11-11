@@ -175,6 +175,36 @@ div.funciones{
     margin-top: 10px;
 }
 div.funciones .fun{
-    width: 100%;
+    width: 100%;   
     text-align: center;
+}
+div.tamImg{
+    width: 100%;
+    margin: 5px;
+    display:flex;
+    align-items: center;
+    justify-content:center;
+    
+}
+div.widthImg{
+    width: 50%
+}
+div.heightImg{
+    width: 50%;
+}
+input#h{
+    width: 100%;
+}
+input#w{
+    width: 100%;
+}
+div.btnResize{
+    width: 100%;
+    display:flex;
+    align-items: center;
+    justify-content:center;
+}
+button#btnR{
+    width: 100%;
+    font-size: 12px;
 }
