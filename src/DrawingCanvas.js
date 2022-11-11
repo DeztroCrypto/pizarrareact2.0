@@ -1,42 +1,46 @@
-import { click } from '@testing-library/user-event/dist/click'
 import { useEffect, useRef, useState } from 'react'
 import './styles.css'
 import './w3.css'
-var imdata
+let img = new Image()
+export function subir_imagen() {
+  const file = document.querySelector('input[type=file]').files[0]
+  const canvas = document.getElementById('pizarra')
+  const context = canvas.getContext('2d')
 
+  img.src = URL.createObjectURL(file)
+
+  img.onload = () => {
+
+    context.drawImage(img, 0, 0)
+  }
+  console.log(img)
+
+}
+
+var imdata
 const DrawingCanvas = (props) => {
   let color = props.color
   let grosor = props.grosor
   let figura = props.figura
-  let img = props.img
-  let newImg = props.newImg
-
-
-  let newWidth = props.newWidth
-  let newHeight = props.newHeight
 
   const canvasRef = useRef(null)
   const contextRef = useRef(null)
-  const startX = useRef(0)
-  const startY = useRef(0)
+  const startX = useRef(null)
+  const startY = useRef(null)
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [isDrawingRect, setDrawingRect] = useState(false);
   const [isDrawingCircle, setDrawingCircle] = useState(false);
   const [isDrawingTriangle, setDrawingTriangle] = useState(false);
-  const [isDrawingImg, setDrawingImg] = useState(false);
   useEffect(() => {
     const canvas = canvasRef.current;
-
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
-
     const context = canvas.getContext("2d");
     context.lineCap = "round";
     context.lineJoin = "round";
     contextRef.current = context;
   }, []);
-  
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -173,37 +177,6 @@ const DrawingCanvas = (props) => {
     }
     setDrawingTriangle(false)
   }
-  const drawImg = ({nativeEvent}) => {
-    if (!isDrawingImg) {
-      return
-    }
-    contextRef.current.clearRect(0, 0,canvasRef.current.width, canvasRef.current.height);
-    contextRef.current.putImageData(newImg, 0, 0)
-    const offsetX = nativeEvent.offsetX
-    const offsetY = nativeEvent.offsetY
-    contextRef.current.drawImage(img,offsetX+startX.current, offsetY+ startY.current,newWidth,newHeight)
-    
-    nativeEvent.preventDefault();
-
-  }
-  const startDrawingImg = ({nativeEvent}) => {
-
-    if (figura === "img") {
-      startX.current -= nativeEvent.offsetX
-      startY.current -= nativeEvent.offsetY
-      setDrawingImg(true)
-    }    
-  }
-  const stopDrawImg = ({nativeEvent}) => {
-    if (!isDrawingImg) {
-      return
-    }    
-    const { offsetX, offsetY } = nativeEvent;
-    startX.current += offsetX
-    startY.current += offsetY
-    setDrawingImg(false)
-  }
-
 
   const funcionOnMouseDown = (nativeEvent) => {
     contextRef.current.strokeStyle = color
@@ -212,7 +185,6 @@ const DrawingCanvas = (props) => {
     startDrawRectangle(nativeEvent)
     startDrawCircle(nativeEvent)
     startDrawTriangle(nativeEvent)
-    startDrawingImg(nativeEvent)
   }
 
   const functionOnMouseMove = (nativeEvent) => {
@@ -220,7 +192,6 @@ const DrawingCanvas = (props) => {
     drawRectangle(nativeEvent)
     drawCircle(nativeEvent)
     drawTriangle(nativeEvent)
-    drawImg(nativeEvent)
   }
 
   const functionOnMouseUp = (nativeEvent) => {
@@ -228,7 +199,6 @@ const DrawingCanvas = (props) => {
     stopDrawRect(nativeEvent)
     stopDrawCircle(nativeEvent)
     stopDrawTriangle(nativeEvent)
-    stopDrawImg(nativeEvent)
   }
 
   const functionOnMouseOut = (nativeEvent) => {
@@ -244,9 +214,7 @@ const DrawingCanvas = (props) => {
       onMouseDown={funcionOnMouseDown}
       onMouseMove={functionOnMouseMove}
       onMouseUp={functionOnMouseUp}
-      onMouseOut={functionOnMouseOut}
-      >
-      
+      onMouseOut={functionOnMouseOut}>
     </canvas>
   )
 }
