@@ -271,7 +271,15 @@ function App() {
       e.currentTarget.files = null;
     })
   }
+  const downloadImg = () =>{
+    let enlace = document.createElement('a')
+    enlace.download = "lienzo.png"
+    const canvas = document.getElementById('pizarra')
+    
+    enlace.href = canvas.toDataURL();
 
+    enlace.click();
+  }
   const resizeImg = () => {
 
     let img = document.createElement('img')
@@ -332,7 +340,7 @@ function App() {
         <Barra_Figuras funcionFiguraCuadrado={dibujarCuadrado} funcionFiguraTriangulo={dibujarTriangulo} funcionFiguraCirculo={dibujarCirculo}/>
       </div>
       <div className="w3-col">
-        <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} />
+        <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} funciondescargaImagen = {downloadImg}/>
       </div>
     </div>
 
