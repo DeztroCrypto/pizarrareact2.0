@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/pizarrareact2.0/static/css/main.6586bcda.css",
-    "main.js": "/pizarrareact2.0/static/js/main.d2ca7961.js",
+    "main.js": "/pizarrareact2.0/static/js/main.ea8eda72.js",
     "static/media/circulo.png": "/pizarrareact2.0/static/media/circulo.c98b3bd87a23f0bf80f0.png",
     "static/media/lapiz.png": "/pizarrareact2.0/static/media/lapiz.fa0b89cea5bb5eff96d6.png",
     "index.html": "/pizarrareact2.0/index.html",
     "main.6586bcda.css.map": "/pizarrareact2.0/static/css/main.6586bcda.css.map",
-    "main.d2ca7961.js.map": "/pizarrareact2.0/static/js/main.d2ca7961.js.map"
+    "main.ea8eda72.js.map": "/pizarrareact2.0/static/js/main.ea8eda72.js.map"
   },
   "entrypoints": [
     "static/css/main.6586bcda.css",
-    "static/js/main.d2ca7961.js"
+    "static/js/main.ea8eda72.js"
   ]
 }
