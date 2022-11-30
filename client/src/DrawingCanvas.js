@@ -352,6 +352,7 @@ const DrawingCanvas = (props) => {
         break;
       case 'img':
         socketDrawImage(data.img, data.x0, data.y0, data.newWidth, data.newHeight, data.srcNewImg)
+        break;
     }
   }
 
