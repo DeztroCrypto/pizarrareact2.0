@@ -38,12 +38,12 @@ const crearBaseDeDatos = () => {
   }
 }
 
-function App() {
+function App(props) {
   useEffect(() => {
     crearBaseDeDatos()
     leerLienzos()
   }, [])
-
+  const socket = props.socket
   const [figura, setFigura] = useState("linea")
   const [colorAct, setColor] = useState("black")
   const [grosorAct, setGrosor] = useState(3)
@@ -324,6 +324,7 @@ function App() {
         newImg={newImg}
         newWidth={newWidth}
         newHeight={newHeight}
+        socket={socket}
       ></DrawingCanvas>
     </div>
     <div className="w3-col tools">

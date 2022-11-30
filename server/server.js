@@ -1,6 +1,5 @@
 import express from "express";
 import http from "http";
-import morgan from "morgan";
 import { Server as SocketServer } from "socket.io";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,9 +11,9 @@ import cors from "cors";
 const app = express();
 const server = http.createServer(app);
 const io = new SocketServer(server, {
-  // cors: {
-  //   origin: "http://localhost:3000",
-  // },
+  cors: {
+  origin: "http://localhost:3000",
+  },
 });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -25,7 +24,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(join(__dirname, "../client/build")));
 
 io.on("connection", (socket) => {
-  console.log(socket.id);    
+  console.log(socket.id); 
+  socket.on('drawing', (data) => socket.broadcast.emit('drawing',data))
 });
 
 server.listen(PORT);

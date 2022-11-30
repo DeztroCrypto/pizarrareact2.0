@@ -10,7 +10,7 @@ const DrawingCanvas = (props) => {
   let figura = props.figura
   let img = props.img
   let newImg = props.newImg
-
+  let socket = props.socket
 
   let newWidth = props.newWidth
   let newHeight = props.newHeight
@@ -31,12 +31,12 @@ const DrawingCanvas = (props) => {
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
 
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext("2d", { willReadFrequently: true });
     context.lineCap = "round";
     context.lineJoin = "round";
     contextRef.current = context;
   }, []);
-  
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,17 +44,15 @@ const DrawingCanvas = (props) => {
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     contextRef.current.putImageData(imInit, 0, 0)
-  },[window.innerHeight,window.innerWidth])
+  }, [window.innerHeight, window.innerWidth])
+
+  socket.on('drawing', onDrawingEvent)
 
   const startDrawing = ({ nativeEvent }) => {
     if (figura === "linea") {
       const { offsetX, offsetY } = nativeEvent;
-      contextRef.current.beginPath();
-      contextRef.current.strokeStyle = color;
-      contextRef.current.lineWidth = grosor;
-      contextRef.current.moveTo(offsetX, offsetY);
-      contextRef.current.lineTo(offsetX, offsetY);
-      contextRef.current.stroke();
+      startX.current = offsetX;
+      startY.current = offsetY
       setIsDrawing(true);
       nativeEvent.preventDefault();
     }
@@ -64,10 +62,33 @@ const DrawingCanvas = (props) => {
       return;
     }
     const { offsetX, offsetY } = nativeEvent;
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
+    socketDrawLine(startX.current, startY.current, offsetX, offsetY, color, grosor, true)
+    startX.current = offsetX
+    startY.current = offsetY
     nativeEvent.preventDefault();
   };
+
+  const socketDrawLine = (x0, y0, x1, y1, color, grosor, emit) => {
+    contextRef.current.strokeStyle = color;
+    contextRef.current.lineWidth = grosor;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(x0, y0)
+    contextRef.current.lineTo(x1, y1)
+    contextRef.current.stroke()
+    contextRef.current.closePath()
+    if (!emit) {
+      return
+    }
+    socket.emit('drawing', {
+      x0,
+      y0,
+      x1,
+      y1,
+      color,
+      grosor,
+      figura
+    })
+  }
 
   const stopDrawing = ({ nativeEvent }) => {
     if (!isDrawing) {
@@ -81,7 +102,7 @@ const DrawingCanvas = (props) => {
     if (figura === "cuadrado") {
       startX.current = nativeEvent.offsetX
       startY.current = nativeEvent.offsetY
-      imdata = contextRef.current.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      imdata = canvasRef.current.toDataURL()
       setDrawingRect(true)
     }
   }
@@ -94,11 +115,32 @@ const DrawingCanvas = (props) => {
     const newPosY = nativeEvent.offsetY
     const rectWidth = newPosX - startX.current
     const rectHeight = newPosY - startY.current
+    socketDrawCuadrado(startX.current, startY.current, rectWidth, rectHeight, color, grosor, imdata, true)
+  }
 
-    contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-    contextRef.current.putImageData(imdata, 0, 0)
-    contextRef.current.strokeRect(startX.current, startY.current, rectWidth, rectHeight)
-
+  const socketDrawCuadrado = (x0, y0, x1, y1, color, grosor, imgData, emit) => {
+    contextRef.current.strokeStyle = color;
+    contextRef.current.lineWidth = grosor;
+    const imagen = new Image
+    imagen.onload = () => {
+      contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+      contextRef.current.drawImage(imagen, 0, 0)
+      contextRef.current.strokeRect(x0, y0, x1, y1)
+    }
+    imagen.src = imgData
+    if (!emit) {
+      return
+    }
+    socket.emit('drawing', {
+      x0,
+      y0,
+      x1,
+      y1,
+      color,
+      grosor,
+      imgData,
+      figura
+    })
   }
 
   const stopDrawRect = ({ nativeEvent }) => {
@@ -112,8 +154,7 @@ const DrawingCanvas = (props) => {
     if (figura === "circulo") {
       startX.current = nativeEvent.offsetX
       startY.current = nativeEvent.offsetY
-
-      imdata = contextRef.current.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      imdata = canvasRef.current.toDataURL()
       setDrawingCircle(true)
     }
   }
@@ -127,13 +168,33 @@ const DrawingCanvas = (props) => {
     const radioX = Math.abs(newPosX - startX.current)
     const radioY = Math.abs(newPosY - startY.current)
     const radioMax = Math.max(radioX, radioY)
-    contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-    contextRef.current.putImageData(imdata, 0, 0)
+    socketDrawCicrulo(startX.current, startY.current, radioMax, color, grosor, imdata, true)
+  }
 
-    contextRef.current.beginPath()
-    contextRef.current.arc(startX.current, startY.current, radioMax, 0, 2 * Math.PI)
-    contextRef.current.stroke()
-
+  const socketDrawCicrulo = (x0, y0, radio, color, grosor, imgData, emit) => {
+    contextRef.current.strokeStyle = color;
+    contextRef.current.lineWidth = grosor;
+    const imagen = new Image
+    imagen.onload = () => {
+      contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+      contextRef.current.drawImage(imagen, 0, 0)
+      contextRef.current.beginPath()
+      contextRef.current.arc(x0, y0, radio, 0, 2 * Math.PI)
+      contextRef.current.stroke()
+    }
+    imagen.src = imgData
+    if (!emit) {
+      return
+    }
+    socket.emit('drawing', {
+      x0,
+      y0,
+      radio,
+      color,
+      grosor,
+      imgData,
+      figura
+    })
   }
 
   const stopDrawCircle = ({ nativeEvent }) => {
@@ -147,7 +208,7 @@ const DrawingCanvas = (props) => {
     if (figura === "triangulo") {
       startX.current = nativeEvent.offsetX
       startY.current = nativeEvent.offsetY
-      imdata = contextRef.current.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      imdata = canvasRef.current.toDataURL()
       setDrawingTriangle(true)
     }
   }
@@ -156,58 +217,104 @@ const DrawingCanvas = (props) => {
     if (!isDrawingTriangle) {
       return
     }
-    contextRef.current.clearRect(0, 0,canvasRef.current.width, canvasRef.current.height);
-    contextRef.current.putImageData(imdata, 0, 0)
+    const vertice = startX.current * 2 - nativeEvent.offsetX
+    socketDrawTriangulo(startX.current, startY.current, nativeEvent.offsetX, vertice, nativeEvent.offsetY, color, grosor, imdata, true)
 
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(startX.current, startY.current);
-    contextRef.current.lineTo(nativeEvent.offsetX, nativeEvent.offsetY);
-    contextRef.current.lineTo(startX.current * 2 - nativeEvent.offsetX, nativeEvent.offsetY);
-    contextRef.current.closePath();
-    contextRef.current.stroke();
   }
 
-  const stopDrawTriangle = ({nativeEvent}) => {
+  const socketDrawTriangulo = (x0, y0, x1, x2, altura, color, grosor, imgData, emit) => {
+    contextRef.current.strokeStyle = color;
+    contextRef.current.lineWidth = grosor;
+    const imagen = new Image
+    imagen.onload = () => {
+      contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+      contextRef.current.drawImage(imagen, 0, 0)
+      contextRef.current.beginPath();
+      contextRef.current.moveTo(x0, y0);
+      console.log(x0)
+      console.log(y0)
+      contextRef.current.lineTo(x1, altura);
+      contextRef.current.lineTo(x2, altura);
+      contextRef.current.closePath();
+      contextRef.current.stroke();
+    }
+    imagen.src = imgData
+    if (!emit) {
+      return
+    }
+    socket.emit('drawing', {
+      x0,
+      y0,
+      x1,
+      x2,
+      altura,
+      color,
+      grosor,
+      imgData,
+      figura
+    })
+  }
+
+  const stopDrawTriangle = ({ nativeEvent }) => {
     if (!isDrawingTriangle) {
       return
     }
     setDrawingTriangle(false)
   }
-  const drawImg = ({nativeEvent}) => {
+
+  const drawImg = ({ nativeEvent }) => {
     if (!isDrawingImg) {
       return
     }
-    contextRef.current.clearRect(0, 0,canvasRef.current.width, canvasRef.current.height);
+    contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     contextRef.current.putImageData(newImg, 0, 0)
     const offsetX = nativeEvent.offsetX
     const offsetY = nativeEvent.offsetY
-    contextRef.current.drawImage(img,offsetX+startX.current, offsetY+ startY.current,newWidth,newHeight)
-    
+    contextRef.current.drawImage(img, offsetX + startX.current, offsetY + startY.current, newWidth, newHeight)
+
     nativeEvent.preventDefault();
+  }
+
+  const socketDrawImage = () => {
 
   }
-  const startDrawingImg = ({nativeEvent}) => {
+
+  const startDrawingImg = ({ nativeEvent }) => {
 
     if (figura === "img") {
       startX.current -= nativeEvent.offsetX
       startY.current -= nativeEvent.offsetY
       setDrawingImg(true)
-    }    
+    }
   }
-  const stopDrawImg = ({nativeEvent}) => {
+  const stopDrawImg = ({ nativeEvent }) => {
     if (!isDrawingImg) {
       return
-    }    
+    }
     const { offsetX, offsetY } = nativeEvent;
     startX.current += offsetX
     startY.current += offsetY
     setDrawingImg(false)
   }
 
+  function onDrawingEvent(data) {
+    console.log(data.figura)
+    switch (data.figura) {
+      case 'linea':
+        socketDrawLine(data.x0, data.y0, data.x1, data.y1, data.color, data.grosor);
+        break;
+      case 'cuadrado':
+        socketDrawCuadrado(data.x0, data.y0, data.x1, data.y1, data.color, data.grosor, data.imgData)
+        break;
+      case 'circulo':
+        socketDrawCicrulo(data.x0, data.y0, data.radio, data.color, data.grosor, data.imgData)
+        break;
+      case 'triangulo':
+        socketDrawTriangulo(data.x0, data.y0, data.x1, data.x2, data.altura, data.color, data.grosor, data.imgData)
+    }
+  }
 
   const funcionOnMouseDown = (nativeEvent) => {
-    contextRef.current.strokeStyle = color
-    contextRef.current.lineWidth = grosor
     startDrawing(nativeEvent)
     startDrawRectangle(nativeEvent)
     startDrawCircle(nativeEvent)
@@ -245,8 +352,7 @@ const DrawingCanvas = (props) => {
       onMouseMove={functionOnMouseMove}
       onMouseUp={functionOnMouseUp}
       onMouseOut={functionOnMouseOut}
-      >
-      
+    >
     </canvas>
   )
 }
