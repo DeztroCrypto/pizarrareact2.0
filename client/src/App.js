@@ -37,13 +37,13 @@ const crearBaseDeDatos = () => {
     console.log("An error occurred with IndexedDB")
   }
 }
-
-function App() {
+var actuImg
+function App(props) {
   useEffect(() => {
     crearBaseDeDatos()
     leerLienzos()
   }, [])
-
+  const socket = props.socket
   const [figura, setFigura] = useState("linea")
   const [colorAct, setColor] = useState("black")
   const [grosorAct, setGrosor] = useState(3)
@@ -51,9 +51,7 @@ function App() {
   const [newImg, setnewImg] = useState(null)
   const [newWidth, setWidth] = useState(200)
   const [newHeight, setHeight] = useState(200)
-
   let idImg
-
 
   const cambiar_color = (element) => {
     setColor(element.target.value)
@@ -234,76 +232,131 @@ function App() {
     }
   }
 
+  //////
+  socket.on('subirImagen', subirImagen)
+  socket.on('redimensionarImagen', redimensionarImagen)
+  socket.on('limpiarPizarra', limpiarPizarra)
+  /////
+
+  function limpiarPizarra() {
+    socketLimpiarPizarra()
+  }
 
   const limpiar_pizarra = () => {
-    const canvas = document.getElementById('pizarra')
-    const context = canvas.getContext("2d");
-    context.fillStyle = "white";
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    socketLimpiarPizarra(true)
     document.getElementById("resize").style.display = "none";
   }
-  const subir_imagen = () => {
-    let img = document.createElement('img')
-    const file = document.querySelector('#inp').files[0]
 
+  const socketLimpiarPizarra = (emit) => {
+    const canvas = document.getElementById('pizarra')
+    const context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    let imgData = canvas.toDataURL()
+    if (!emit) {
+      return
+    }
+    socket.emit('limpiarPizarra',{
+      imgData
+    })
+  }
+
+  const subir_imagen = () => {
+    const file = document.querySelector('#inp').files[0]
     const canvas = document.getElementById('pizarra')
     const context = canvas.getContext('2d')
-    let actuImg
-    img.src = URL.createObjectURL(file)
-    img.id = 'imgSub'
+    actuImg = canvas.toDataURL()
+    setnewImg(actuImg)
+
     setWidth(200)
     setHeight(200)
-    img.onload = () => {
-
-      actuImg = context.getImageData(0, 0, canvas.width, canvas.height)
-      setnewImg(actuImg)
-      context.drawImage(img, 0, 0, newWidth, newHeight)
-      document.getElementById("resize").style.display = "block";
-
-    }
-    console.log(img)
-
-
+    const src = URL.createObjectURL(file)
+    setImg(src)
+    socketSubirImagen(src, newWidth, newHeight, true)
     setFigura('img')
-
-    setImg(img)
     document.querySelector('#inp').addEventListener('onchange', function (e) {
       e.currentTarget.files = null;
     })
   }
-  const downloadImg = () =>{
+
+  const socketSubirImagen = (src, newWidth, newHeight, emit) => {
+    const canvas = document.getElementById('pizarra')
+    const context = canvas.getContext('2d')
+    let img = document.createElement('img')
+    var imgData
+    img.id = 'imgSub'
+    img.src = src
+    img.onload = () => {
+      context.drawImage(img, 0, 0, newWidth, newHeight)
+      document.getElementById("resize").style.display = "block";
+      imgData = canvas.toDataURL()
+      if (!emit) {
+        return
+      }
+      socket.emit('subirImagen', {
+        src,
+        newWidth,
+        newHeight,
+        imgData
+      })
+    }
+  }
+  function subirImagen(data) {
+    socketSubirImagen(data.src, data.newWidth, data.newHeight)
+  }
+
+  const downloadImg = () => {
     let enlace = document.createElement('a')
     enlace.download = "lienzo.png"
     const canvas = document.getElementById('pizarra')
-    
-    enlace.href = canvas.toDataURL();
 
+    enlace.href = canvas.toDataURL();
     enlace.click();
   }
+
+
   const resizeImg = () => {
-
-    let img = document.createElement('img')
     const file = document.querySelector('input[type=file]').files[0]
-    const canvas = document.getElementById('pizarra')
-    const context = canvas.getContext('2d')
-    let actuImg
-    img.src = URL.createObjectURL(file)
-    img.id = 'imgSub'
-
+    const src = URL.createObjectURL(file)
     const widthImg = document.getElementById('w').value
     const heightImg = document.getElementById('h').value
     setWidth(widthImg)
     setHeight(heightImg)
-    img.onload = () => {
-      context.putImageData(newImg, 0, 0)
-      context.drawImage(img, 0, 0, widthImg, heightImg)
-    }
-    console.log(img)
-
-
+    socketResizeImg(src, widthImg, heightImg, actuImg, true)
     setFigura('img')
+  }
 
-    setImg(img)
+  function redimensionarImagen(data) {
+    socketResizeImg(data.src, data.newWidth, data.newHeight, data.actuImg)
+  }
+
+  const socketResizeImg = (src, newWidth, newHeight, actuImg, emit) => {
+    let img = new Image
+    let BGImg = new Image
+    const canvas = document.getElementById('pizarra')
+    const context = canvas.getContext('2d')
+    BGImg.src = actuImg
+    img.src = src
+    img.id = 'imgSub'
+    var imgData
+    BGImg.onload = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(BGImg, 0, 0)
+    }
+    img.onload = () => {
+      context.drawImage(img, 0, 0, newWidth, newHeight)
+      imgData = canvas.toDataURL()
+      if (!emit) {
+        return
+      }
+      socket.emit('redimensionarImagen', {
+        src,
+        newWidth,
+        newHeight,
+        actuImg,
+        imgData
+      })
+    }
+
   }
 
   return <div className="principal">
@@ -324,6 +377,7 @@ function App() {
         newImg={newImg}
         newWidth={newWidth}
         newHeight={newHeight}
+        socket={socket}
       ></DrawingCanvas>
     </div>
     <div className="w3-col tools">
@@ -337,10 +391,10 @@ function App() {
         <Barra_Grosor funcionGrosor={cambiar_grosor} />
       </div>
       <div className="w3-col">
-        <Barra_Figuras funcionFiguraCuadrado={dibujarCuadrado} funcionFiguraTriangulo={dibujarTriangulo} funcionFiguraCirculo={dibujarCirculo}/>
+        <Barra_Figuras funcionFiguraCuadrado={dibujarCuadrado} funcionFiguraTriangulo={dibujarTriangulo} funcionFiguraCirculo={dibujarCirculo} />
       </div>
       <div className="w3-col">
-        <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} funciondescargaImagen = {downloadImg}/>
+        <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} funciondescargaImagen={downloadImg} />
       </div>
     </div>
 
