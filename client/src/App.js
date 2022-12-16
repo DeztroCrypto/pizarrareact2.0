@@ -286,6 +286,10 @@ function App(props) {
       divUsuario.className = "usuario"
       const labelUsuario = document.createElement("label")
       labelUsuario.innerHTML = listaUsuarios[indice].nombre
+      if(socket.id === listaUsuarios[indice].id){
+        labelUsuario.style.textDecoration = "underline"
+        labelUsuario.style.fontWeight = "bold"
+      }
       const botonPasarEdicion = document.createElement("button")
       botonPasarEdicion.textContent = "Pasar lápiz"
       botonPasarEdicion.className = "botonUsuario"
