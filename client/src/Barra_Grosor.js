@@ -5,7 +5,7 @@ const Barra_Grosor = (props) => {
     return(
         <div className="w3-container grosor">
             <div className="gros">
-                 <input type="range"  id = "vol"  name="vol" min="1" max="10" defaultValue={1} class="selector_color"
+                 <input type="range"  id = "vol"  name="vol" min="1" max="10" defaultValue={1} class="selector_color" disabled = {props.deshabilitado}
                      onChange={props.funcionGrosor} >          
                   </input>
             </div>

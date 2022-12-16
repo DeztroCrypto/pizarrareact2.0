@@ -4,6 +4,7 @@
 }
 
 .principal{
+    height: 630px;
     margin-top: 20px;
 }
 
@@ -212,4 +213,72 @@ div.btnResize{
 button#btnR{
     width: 100%;
     font-size: 12px;
+}
+
+.divUsuarios {
+    display: flex;
+    width: 100%;
+    height: auto;
+    justify-content:center;
+    align-items: center;
+    gap: 20px
+}
+.contenedorUsuarios {
+    padding: 2px;
+    height:180px;
+    width:50%;
+    border: 2px solid black;
+    
+}
+
+.contenedorUsuarios h1{
+    font-size: 23px;
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.listaUsuarios{
+    margin-top: 10px;
+    padding-left: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    height: 130px;
+    gap : 15px;
+    overflow-y: scroll;
+}
+
+.usuario{
+    display:flex;
+    height: 40px;
+    width:190px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.botonUsuario{
+    width: auto;
+    height: fit-content;
+}
+
+.botonesLevantarBajar{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.botonLevantar{
+    height: 50px;
+    width: fit-content;
+}
+
+.botonBajar{
+    height: 50px;
+    width: fit-content;
+    visibility: hidden;
 }

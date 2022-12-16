@@ -23,14 +23,28 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static(join(__dirname, "../client/build")));
 var canvasActual
+let usuariosConectados = []
+let id = 1
+let usuarioHabilitadoDibujar
 io.on("connection", (socket) => {
   console.log(socket.id);
+  if (!usuarioHabilitadoDibujar) {
+    usuarioHabilitadoDibujar = socket.id
+  }
+  usuariosConectados.push({ id: socket.id, nombre: `Usuario ${id}` })
+  id++
   if (canvasActual) {
     socket.emit('cargarCanvas', { imgData: canvasActual })
   }
+  socket.emit('brindarEdicionUsuarioHabilitado', { usuarioHabilitadoDibujar })
+  socket.emit('envioUsuariosActuales', { lista: usuariosConectados, emit: true })
   socket.on('drawing', (data) => {
     canvasActual = data.imgData
     socket.broadcast.emit('drawing', data)
+  })
+  socket.on('cargarLienzo', (data) => {
+    canvasActual = data.imgData
+    socket.broadcast.emit('cargarLienzo', data)
   })
   socket.on('subirImagen', (data) => {
     canvasActual = data.imgData
@@ -40,9 +54,21 @@ io.on("connection", (socket) => {
     canvasActual = data.imgData
     socket.broadcast.emit('redimensionarImagen', data)
   })
-  socket.on('limpiarPizarra', (data) =>{
+  socket.on('limpiarPizarra', (data) => {
     canvasActual = data.imgData
     socket.broadcast.emit('limpiarPizarra')
+  })
+  socket.on('ingresoUsuario', (data) => {
+    socket.broadcast.emit('actualizarLista', data)
+  })
+  socket.on('pasarEdicion', (data) => {
+    socket.broadcast.emit('pasarEdicion', data)
+  })
+  socket.on('levantarMano', (data) => {
+    socket.broadcast.emit('levantarMano', data)
+  })
+  socket.on('bajarMano', (data) => {
+    socket.broadcast.emit('bajarMano', data)
   })
 });
 
