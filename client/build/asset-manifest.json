@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/static/css/main.ed849869.css",
+    "main.js": "/static/js/main.b4461c55.js",
+    "static/media/circulo.png": "/static/media/circulo.c98b3bd87a23f0bf80f0.png",
+    "static/media/lapiz.png": "/static/media/lapiz.fa0b89cea5bb5eff96d6.png",
+    "index.html": "/index.html",
+    "main.ed849869.css.map": "/static/css/main.ed849869.css.map",
+    "main.b4461c55.js.map": "/static/js/main.b4461c55.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ed849869.css",
+    "static/js/main.b4461c55.js"
+  ]
+}
