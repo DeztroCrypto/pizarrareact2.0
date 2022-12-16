@@ -11,6 +11,7 @@ const DrawingCanvas = (props) => {
   let img = props.img
   let newImg = props.newImg
   let socket = props.socket
+  let deshabilitado = props.deshabilitado
 
   let newWidth = props.newWidth
   let newHeight = props.newHeight
@@ -46,9 +47,11 @@ const DrawingCanvas = (props) => {
     contextRef.current.putImageData(imInit, 0, 0)
   }, [window.innerHeight, window.innerWidth])
 
+  ///
   socket.on('drawing', onDrawingEvent)
   socket.on('cargarCanvas', cargarCanvas)
-
+  ///
+  
   function cargarCanvas(data) {
     const imagen = new Image
     imagen.onload = () => {
@@ -194,7 +197,7 @@ const DrawingCanvas = (props) => {
       contextRef.current.beginPath()
       contextRef.current.arc(x0, y0, radio, 0, 2 * Math.PI)
       contextRef.current.stroke()
-      
+
     }
     imagen.src = imDataBG
     if (!emit) {
@@ -357,11 +360,13 @@ const DrawingCanvas = (props) => {
   }
 
   const funcionOnMouseDown = (nativeEvent) => {
-    startDrawing(nativeEvent)
-    startDrawRectangle(nativeEvent)
-    startDrawCircle(nativeEvent)
-    startDrawTriangle(nativeEvent)
-    startDrawingImg(nativeEvent)
+    if(!deshabilitado){
+      startDrawing(nativeEvent)
+      startDrawRectangle(nativeEvent)
+      startDrawCircle(nativeEvent)
+      startDrawTriangle(nativeEvent)
+      startDrawingImg(nativeEvent)
+    }
   }
 
   const functionOnMouseMove = (nativeEvent) => {

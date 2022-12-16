@@ -6,16 +6,16 @@ const Barra_Colores = (props) => {
     return(
         <div className="w3-container colores">
         <div className="w3-col sec1">
-            <Boton_Color className = "w3-button boton_color w3-red" value ="red" onClick = {props.funcionColor}/>
-            <Boton_Color className = "w3-button boton_color w3-blue" value ="blue" onClick = {props.funcionColor}/>
+            <Boton_Color className = "w3-button boton_color w3-red" value ="red" onClick = {props.funcionColor} deshabilitado = {props.deshabilitado}/>
+            <Boton_Color className = "w3-button boton_color w3-blue" value ="blue" onClick = {props.funcionColor} deshabilitado = {props.deshabilitado}/>
         </div>
         <div className="sec2">
-            <Boton_Color className = "w3-button boton_color w3-orange" value ="orange" onClick = {props.funcionColor}/>
-            <Boton_Color className = "w3-button boton_color w3-yellow" value ="yellow" onClick = {props.funcionColor}/>
+            <Boton_Color className = "w3-button boton_color w3-orange" value ="orange" onClick = {props.funcionColor} deshabilitado = {props.deshabilitado}/>
+            <Boton_Color className = "w3-button boton_color w3-yellow" value ="yellow" onClick = {props.funcionColor} deshabilitado = {props.deshabilitado}/>
         </div>
         
         <div className="sec3">
-            <input type="color" class="selector_color" onChange={props.funcionColor} ></input>
+            <input type="color" class="selector_color" onChange={props.funcionColor} disabled = {props.deshabilitado}></input>
         </div>
         
        

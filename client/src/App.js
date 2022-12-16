@@ -51,12 +51,14 @@ function App(props) {
   const [newImg, setnewImg] = useState(null)
   const [newWidth, setWidth] = useState(200)
   const [newHeight, setHeight] = useState(200)
-  let idImg
-
+  const [deshabilitado, setDeshabilitado] = useState(true)
+  const [listaUsuarios, setListaUsuarios] = useState(null)
+  useEffect(() => {
+    leerLienzos()
+  }, [deshabilitado])
   const cambiar_color = (element) => {
     setColor(element.target.value)
   }
-
 
   const cambiar_grosor = (element) => {
     setGrosor(element.target.value)
@@ -172,17 +174,23 @@ function App(props) {
           divBotones.id = "botonesLienzoGuardado"
           const botonActualizar = document.createElement("button")
           botonActualizar.textContent = "Cargar"
+          botonActualizar.id = "botonCRUD"
           botonActualizar.className = "botonCRUD"
           botonActualizar.onclick = cargarLienzo
-          botonActualizar.id = "actualizarLienzo"
+          botonActualizar.id = "botonCRUD"
           botonActualizar.dataset.nombre = cursor.value.nombre
           divBotones.appendChild(botonActualizar)
           const botonEliminar = document.createElement("button")
           botonEliminar.textContent = "Eliminar"
+          botonEliminar.id = "botonCRUD"
           botonEliminar.className = "botonCRUD"
           botonEliminar.onclick = eliminarLienzo
           botonEliminar.dataset.nombre = cursor.value.nombre
           divBotones.appendChild(botonEliminar)
+          if (deshabilitado) {
+            botonActualizar.disabled = true
+            botonEliminar.disabled = true
+          }
           elementoLienzo.appendChild(divBotones)
           fragment.appendChild(elementoLienzo)
           cursor.continue()
@@ -203,18 +211,34 @@ function App(props) {
       const lienzoStore = transaction.objectStore("lienzosGuardados")
       const request = lienzoStore.get(key)
       request.onsuccess = () => {
-        const canvas = document.getElementById('pizarra')
-        const context = canvas.getContext("2d")
-        const imagen = new Image
-        imagen.onload = () => {
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          context.drawImage(imagen, 0, 0)
-        }
-        imagen.src = request.result.image
+        socketCargarLienzo(request.result.image,true)
         document.getElementById("ingresoNombreLienzo").value = request.result.nombre
         cambiar_lapiz()
       }
     }
+  }
+
+  function cargarLienzoSocket(data){
+      socketCargarLienzo(data.lienzo)
+  }
+
+  const socketCargarLienzo = (lienzo,emit) => {
+    const canvas = document.getElementById('pizarra')
+    const context = canvas.getContext("2d")
+    const imagen = new Image
+    imagen.onload = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(imagen, 0, 0)
+      const imgData = canvas.toDataURL()
+      if(!emit){
+        return
+      }
+      socket.emit('cargarLienzo',{
+        lienzo,
+        imgData
+      })
+    }
+    imagen.src = lienzo
   }
 
   const eliminarLienzo = (e) => {
@@ -235,8 +259,123 @@ function App(props) {
   //////
   socket.on('subirImagen', subirImagen)
   socket.on('redimensionarImagen', redimensionarImagen)
+  socket.on('cargarLienzo',cargarLienzoSocket)
   socket.on('limpiarPizarra', limpiarPizarra)
+  socket.on('envioUsuariosActuales', recargarListaUsuarios)
+  socket.on('actualizarLista', recargarListaUsuarios)
+  socket.on('levantarMano', levantarManoUsuario)
+  socket.on('bajarMano', bajarManoUsuario)
+  socket.on('brindarEdicionUsuarioHabilitado', habilitarEdicion)
+  socket.on('pasarEdicion', pasarEdicionUsuario)
   /////
+
+  function habilitarEdicion(data) {
+    if (data.usuarioHabilitadoDibujar === socket.id) {
+      setDeshabilitado(false)
+    }
+  }
+
+  function recargarListaUsuarios(data) {
+    const fragment = document.createDocumentFragment()
+    const sectorUsuarios = document.getElementById("sectorListaUsuarios")
+    sectorUsuarios.innerHTML = ""
+    let listaUsuarios = data.lista
+    setListaUsuarios(listaUsuarios)
+    for (let indice in listaUsuarios) {
+      const divUsuario = document.createElement("div")
+      divUsuario.className = "usuario"
+      const labelUsuario = document.createElement("label")
+      labelUsuario.innerHTML = listaUsuarios[indice].nombre
+      const botonPasarEdicion = document.createElement("button")
+      botonPasarEdicion.textContent = "Pasar lápiz"
+      botonPasarEdicion.className = "botonUsuario"
+      botonPasarEdicion.id = listaUsuarios[indice].id
+      botonPasarEdicion.onclick = pasarEdicion
+      botonPasarEdicion.dataset.id = listaUsuarios[indice].id
+      botonPasarEdicion.style.visibility = "hidden"
+
+      divUsuario.appendChild(labelUsuario)
+      divUsuario.appendChild(botonPasarEdicion)
+      fragment.appendChild(divUsuario)
+    }
+    sectorUsuarios.appendChild(fragment)
+    if (!data.emit) {
+      return
+    }
+    socket.emit('ingresoUsuario', { lista: listaUsuarios })
+  }
+
+  const pasarEdicion = (event) => {
+    const idNuevoUsuarioHabilitado = event.target.dataset.id
+    if (socket.id !== idNuevoUsuarioHabilitado) {
+      setDeshabilitado(true)
+      socketPasarEdicion(idNuevoUsuarioHabilitado, true)
+    }else{
+      alert("No tienes permiso para hacer eso")
+    }
+  }
+
+  function pasarEdicionUsuario(data) {
+    socketPasarEdicion(data.id)
+  }
+
+  const socketPasarEdicion = (id, emit) => {
+    if (socket.id === id) {
+      setDeshabilitado(false)
+    }
+    if (!emit) {
+      return
+    }
+    socket.emit('pasarEdicion', {
+      id
+    })
+  }
+
+  const levantarMano = () => {
+    const botonLevantarMano = document.getElementById("botonLevantarMano")
+    botonLevantarMano.style.visibility = "hidden"
+    const botonBajarMano = document.getElementById("botonBajarMano")
+    botonBajarMano.style.visibility = "visible"
+    socketLevantarMano(socket.id, true)
+  }
+
+  function levantarManoUsuario(data) {
+    socketLevantarMano(data.id)
+  }
+
+  const socketLevantarMano = (id, emit) => {
+    const botonRespectivoUsuario = document.getElementById(id)
+    botonRespectivoUsuario.style.visibility = "visible"
+    if (!emit) {
+      return
+    }
+    socket.emit('levantarMano', {
+      id
+    })
+  }
+
+  const bajarMano = () => {
+    const botonBajarMano = document.getElementById("botonBajarMano")
+    botonBajarMano.style.visibility = "hidden"
+    const botonLevantarMano = document.getElementById("botonLevantarMano")
+    botonLevantarMano.style.visibility = "visible"
+    socketBajarMano(socket.id, true)
+  }
+
+  function bajarManoUsuario(data) {
+    socketBajarMano(data.id)
+  }
+
+  const socketBajarMano = (id, emit) => {
+    const botonRespectivoUsuario = document.getElementById(id)
+    botonRespectivoUsuario.style.visibility = "hidden"
+    if (!emit) {
+      return
+    }
+    socket.emit('bajarMano', {
+      id
+    })
+  }
 
   function limpiarPizarra() {
     socketLimpiarPizarra()
@@ -255,7 +394,7 @@ function App(props) {
     if (!emit) {
       return
     }
-    socket.emit('limpiarPizarra',{
+    socket.emit('limpiarPizarra', {
       imgData
     })
   }
@@ -359,47 +498,59 @@ function App(props) {
 
   }
 
-  return <div className="principal">
-    <div className="w3-col guardado">
-      <div>
-        <Barra_CRUD funcionGuardarLienzo={guardarLienzo} funcionCargarLienzo={cargarLienzo} />
-      </div>
-      <div id="contenedorLienzos">
-        <div id="lienzos"></div>
-      </div>
-    </div>
-    <div className="w3-col pizarra">
-      <DrawingCanvas
-        color={colorAct}
-        grosor={grosorAct}
-        figura={figura}
-        img={img}
-        newImg={newImg}
-        newWidth={newWidth}
-        newHeight={newHeight}
-        socket={socket}
-      ></DrawingCanvas>
-    </div>
-    <div className="w3-col tools">
-      <div className="w3-col">
-        <Barra_Herramientas funcionPincel={cambiar_lapiz} funcionBorrador={cambiar_borrador} />
-      </div>
-      <div className="w3-col">
-        <Barra_Colores funcionColor={cambiar_color} />
-      </div>
-      <div className="w3-col">
-        <Barra_Grosor funcionGrosor={cambiar_grosor} />
-      </div>
-      <div className="w3-col">
-        <Barra_Figuras funcionFiguraCuadrado={dibujarCuadrado} funcionFiguraTriangulo={dibujarTriangulo} funcionFiguraCirculo={dibujarCirculo} />
-      </div>
-      <div className="w3-col">
-        <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} funciondescargaImagen={downloadImg} />
-      </div>
-    </div>
 
-  </div>
-
+  return <>
+    <div className="principal">
+      <div className="w3-col guardado">
+        <div>
+          <Barra_CRUD funcionGuardarLienzo={guardarLienzo} funcionCargarLienzo={cargarLienzo} deshabilitado={deshabilitado} />
+        </div>
+        <div id="contenedorLienzos">
+          <div id="lienzos"></div>
+        </div>
+      </div>
+      <div className="w3-col pizarra">
+        <DrawingCanvas
+          color={colorAct}
+          grosor={grosorAct}
+          figura={figura}
+          img={img}
+          newImg={newImg}
+          newWidth={newWidth}
+          newHeight={newHeight}
+          socket={socket}
+          deshabilitado={deshabilitado}
+        ></DrawingCanvas>
+      </div>
+      <div className="w3-col tools">
+        <div className="w3-col">
+          <Barra_Herramientas funcionPincel={cambiar_lapiz} funcionBorrador={cambiar_borrador} deshabilitado={deshabilitado} />
+        </div>
+        <div className="w3-col">
+          <Barra_Colores funcionColor={cambiar_color} deshabilitado={deshabilitado} />
+        </div>
+        <div className="w3-col">
+          <Barra_Grosor funcionGrosor={cambiar_grosor} deshabilitado={deshabilitado} />
+        </div>
+        <div className="w3-col">
+          <Barra_Figuras funcionFiguraCuadrado={dibujarCuadrado} funcionFiguraTriangulo={dibujarTriangulo} funcionFiguraCirculo={dibujarCirculo} deshabilitado={deshabilitado} />
+        </div>
+        <div className="w3-col">
+          <Barra_Funciones funcionLimpiar={limpiar_pizarra} funcionFiguraImagen={subir_imagen} funciontamanoImagen={resizeImg} funciondescargaImagen={downloadImg} deshabilitado={deshabilitado} />
+        </div>
+      </div>
+    </div>
+    <div className="divUsuarios">
+      <div className="contenedorUsuarios">
+        <h1>Usuarios</h1>
+        <div id="sectorListaUsuarios" className="listaUsuarios"></div>
+      </div>
+      <div className="botonesLevantarBajar">
+        <button id="botonLevantarMano" className="botonLevantar" onClick={levantarMano}>Levantar la Mano</button>
+        <button id="botonBajarMano" className="botonBajar" onClick={bajarMano} >Bajar la Mano</button>
+      </div>
+    </div>
+  </>
 
 
 }
