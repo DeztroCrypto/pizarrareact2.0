@@ -1,0 +1,50 @@
+
+opcion 1:
+    Windows:
+        - Descargar para Windows Node js "https://nodejs.org/en/download/"
+        - Crearse una cuenta en heroku
+        - descargar el heroku cli "https://devcenter.heroku.com/articles/heroku-cli"
+        - Entrar a la carpeta del proyecto
+        - poner npm install socket.io
+        - poner en la terminal heroku login e iniciar sesion con nuestra cuenta
+        - poner en la terminar git init 
+        - poner "heroku create pizarrareact" para crear nuestro deploy
+        - poner "git add ." seguido de un " git commit .m "subiendo el proyecto" "
+        - poner git push heroku master para subir el proyecto
+        - y final mente colocar heroku open -a pizarrareact
+        
+        Linux:
+        - para instalar en linux/debian ponemos el siguiente comando "sudo apt install nodejs"
+        - luego el siguiente comando "sudo apt install npm"
+        - si falla algo verificar la siguiente pagina "https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-20-04"
+        - Crearse una cuenta en heroku
+        - descargar el heroku cli "https://devcenter.heroku.com/articles/heroku-cli"
+        - Entrar a la carpeta del proyecto
+        - poner npm install socket.io
+        - poner en la terminal heroku login e iniciar sesion con nuestra cuenta
+        - poner en la terminar git init 
+        - poner "heroku create pizarrareact" para crear nuestro deploy
+        - poner "git add ." seguido de un " git commit .m "subiendo el proyecto" "
+        - poner git push heroku master para subir el proyecto
+        - y final mente colocar heroku open -a pizarrareact
+
+SI POR ALGUNA RAZON FALLARA LA ANTERIOR FORMA TENEMOS LA DE MONTAR DIRECTO EL PROYECTO EN EL LOCALHOST 
+
+opcion 2:
+    Windows:
+        - Descargar para Windows Node js "https://nodejs.org/en/download/"
+        - Entrar a la carpeta del proyecto
+        - poner "npm install socket.io"
+        - luego "npm run build"
+        - luego un npm start
+        y con eso ya tendriamos montado el server en windows
+        
+        Linux:
+        - para instalar en linux/debian ponemos el siguiente comando "sudo apt install nodejs"
+        - luego el siguiente comando "sudo apt install npm"
+        - si falla algo verificar la siguiente pagina "https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-20-04"
+        - Entrar a la carpeta del proyecto
+        - poner "npm install socket.io"
+        - luego "npm run build"
+        - luego un npm start
+        y con eso ya tendriamos montado el server en linux
