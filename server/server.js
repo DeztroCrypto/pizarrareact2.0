@@ -11,9 +11,9 @@ import cors from "cors";
 const app = express();
 const server = http.createServer(app);
 const io = new SocketServer(server, {
-  cors: {
-    origin: "http://localhost:3000",
-  },
+  //cors: {
+  // origin: "http://localhost:3000",
+  //},
 });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -73,4 +73,4 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT);
-console.log('server on port ${PORT}');
+console.log(`server on port ${PORT}`);
