@@ -19,9 +19,9 @@ const Barra_Funciones = (props) => {
                 </div>
                 
                 
-                <Boton_Opcion nombre = "Borrar" onClick = {props.funcionLimpiar}/>
-                <Boton_Opcion nombre = "Subir" input = {<input class="sub" type='file' id="inp"  multiple  onChange={props.funcionFiguraImagen} />} />
-                <Boton_Opcion nombre = "Descargar" onClick = {props.funciondescargaImagen}/>
+                <Boton_Opcion nombre = "Borrar" onClick = {props.funcionLimpiar} deshabilitado={props.deshabilitado}/>
+                <Boton_Opcion nombre = "Subir" input = {<input class="sub" type='file' id="inp"  multiple  onChange={props.funcionFiguraImagen} />} deshabilitado={props.deshabilitado}/>
+                <Boton_Opcion nombre = "Descargar" onClick = {props.funciondescargaImagen} deshabilitado={props.deshabilitado}/>
 
             </div>
         
